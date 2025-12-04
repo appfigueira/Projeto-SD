@@ -1,0 +1,20 @@
+#########################
+# SYSTEM CONFIGURATION
+#########################
+
+# --- Gateway Registry Info ---
+gateway.host=10.93.135.201
+gateway.portRMI=1099
+gateway.serviceName=Gateway
+
+# --- Crawler Server ---
+crawler.host=10.93.135.1
+crawler.portRMI=1100
+crawler.serviceName=CrawlerServer
+crawler.queue=URLQueue
+crawler.numberOfCrawlers = 3
+crawler.readFile=false
+
+# --- Barrel Servers ---
+barrels.numberOfBarrels=2
+barrels.serviceNames=Barrel 1,Barrel 2,Barrel 3,Barrel 4,Barrel 5
