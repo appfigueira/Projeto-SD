@@ -5,12 +5,12 @@ import Common.Functions.RMIConnectionManager;
 import Common.DataStructures.*;
 import Servers.BarrelServer.Interfaces.IBarrelBarrel;
 import Servers.BarrelServer.Interfaces.IBarrelGateway;
-import Servers.Client.Interfaces.IClientGateway;
 import Servers.CrawlerServer.Interfaces.ICrawlerGateway;
 import Servers.GatewayServer.DataStructures.BarrelInfo;
 import Servers.GatewayServer.Interfaces.IGatewayBarrel;
-import Servers.GatewayServer.Interfaces.IGatewayClient;
+import Servers.GatewayServer.Interfaces.IGatewayWeb;
 import Servers.GatewayServer.Interfaces.IGatewayCrawler;
+import Servers.WebServer.Interfaces.IWebGateway;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class GatewayServer extends UnicastRemoteObject implements IGatewayClient, IGatewayCrawler, IGatewayBarrel {
+public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, IGatewayCrawler, IGatewayBarrel {
     private static String gatewayServiceName = null;
     private GatewayServer gateway = null;
     private static int gatewayPort; // RMI registry port
@@ -41,7 +41,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayClient
     private static final Map<String, Long> barrelsLastResponseTime = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Long> barrelsAvgResponseTime = new ConcurrentHashMap<>(); //<barrel, time(ms)>
     private static final ConcurrentHashMap<String, Integer> barrelsNRequests = new ConcurrentHashMap<>(); //<barrel, nRequests>
-    private static final List<IClientGateway> clients = new CopyOnWriteArrayList<>();
+    private static final List<IWebGateway> webServers = new CopyOnWriteArrayList<>();
     private static RMIConnectionManager<ICrawlerGateway> crawlerConnectionManager = null;
 
     protected GatewayServer() throws RemoteException {
@@ -294,7 +294,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayClient
     @Override
     public void updateSystemStats(BarrelStats newBarrelStats) throws RemoteException {
         //Stop sending barrel stats if no clients are "listening"
-        if (clients.isEmpty()){
+        if (webServers.isEmpty()){
             for (BarrelInfo barrelInfo : barrelsList) {
                 IBarrelGateway barrelStub = barrelInfo.stub();
                 try {
@@ -329,12 +329,12 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayClient
             }
         }
 
-        for (IClientGateway client : clients) {
+        for (IWebGateway webServer : webServers) {
             try {
-                client.updateSystemStats(systemStats);
+                webServer.updateSystemStats(systemStats);
             } catch (RemoteException e) {
                 System.err.println("[Gateway Server] Failed to update a Client. Removing Client from list.");
-                clients.remove(client);
+                webServers.remove(webServer);
             }
         }
     }
@@ -385,19 +385,19 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayClient
         barrelStats.setNRequests(nRequests);
     }
 
-    //Save client stub for callback
+    //Save web server stub for callback
     @Override
-    public void registerClient(IClientGateway client) {
-        if (!clients.contains(client)) {
-            clients.add(client);
+    public void registerWebServer(IWebGateway webServer) {
+        if (!webServers.contains(webServer)) {
+            webServers.add(webServer);
         }
     }
 
-    //Remove client stub for callback
+    //Remove web server stub for callback
     @Override
-    public void unregisterClient(IClientGateway client) {
-        clients.remove(client);
-        System.out.println("[Gateway] Client unregistered.");
+    public void unregisterWebServer(IWebGateway webServer) {
+        webServers.remove(webServer);
+        System.out.println("[Gateway] Web Server unregistered.");
     }
 
     @Override
