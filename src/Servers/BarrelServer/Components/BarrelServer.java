@@ -1,6 +1,6 @@
 package Servers.BarrelServer.Components;
 
-import Common.ConnectionManagers.RMIConnectionManager;
+import Common.Functions.RMIConnectionManager;
 import Common.DataStructures.BackupBarrelInfo;
 import Common.DataStructures.BarrelStats;
 import Servers.BarrelServer.DataStructures.PageHeader;

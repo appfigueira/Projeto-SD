@@ -1,4 +1,4 @@
-package Common.ConnectionManagers;
+package Common.Functions;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;

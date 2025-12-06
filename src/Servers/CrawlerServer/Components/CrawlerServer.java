@@ -1,7 +1,7 @@
 package Servers.CrawlerServer.Components;
 
 
-import Common.ConnectionManagers.RMIConnectionManager;
+import Common.Functions.RMIConnectionManager;
 import Servers.BarrelServer.Interfaces.IBarrelCrawler;
 import Servers.CrawlerServer.DataStructures.BarrelInfo;
 import Servers.CrawlerServer.Interfaces.ICrawlerBarrel;

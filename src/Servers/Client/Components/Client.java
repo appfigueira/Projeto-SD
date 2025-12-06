@@ -1,7 +1,7 @@
 package Servers.Client.Components;
 
 
-import Common.ConnectionManagers.RMIConnectionManager;
+import Common.Functions.RMIConnectionManager;
 import Common.DataStructures.*;
 import Servers.Client.Interfaces.IClientGateway;
 import Servers.GatewayServer.Interfaces.IGatewayClient;

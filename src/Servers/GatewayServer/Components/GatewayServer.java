@@ -1,7 +1,7 @@
 package Servers.GatewayServer.Components;
 
 
-import Common.ConnectionManagers.RMIConnectionManager;
+import Common.Functions.RMIConnectionManager;
 import Common.DataStructures.*;
 import Servers.BarrelServer.Interfaces.IBarrelBarrel;
 import Servers.BarrelServer.Interfaces.IBarrelGateway;
