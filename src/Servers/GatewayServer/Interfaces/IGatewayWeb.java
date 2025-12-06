@@ -15,6 +15,6 @@ public interface IGatewayWeb extends Remote {
     SearchResult searchClientGateway(List<String> searchWords, int pageNumber, int URLsPerPage) throws RemoteException;
     LinkingURLsResult getLinkingURLsClientGateway(String url) throws RemoteException;
     SystemStats getSystemStats() throws RemoteException;
-    void registerWebServer(IWebGateway clientStub) throws RemoteException;
-    void unregisterWebServer(IWebGateway clientStub) throws RemoteException;
+    void registerWebServer(IWebGateway webStub) throws RemoteException;
+    void unregisterWebServer(IWebGateway webStub) throws RemoteException;
 }

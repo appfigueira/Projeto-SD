@@ -224,53 +224,51 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
         System.out.println("------------------------------------");
     }
 
-    //Request SystemStats
-    public void getSystemStats() {
-        IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-        if (gatewayStub == null) {
-            System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
-        } else {
-            try {
-                IWebGateway webStub = new WebServer();
-                gatewayStub.registerWebServer(webStub);
-
-                //Initial System Stats
-                SystemStats systemStats = gatewayStub.getSystemStats();
-            }
-            catch (RemoteException e) {
-                System.err.println("[Client] Error: Failed to connect to Gateway Server");
-            }
-        }
-    }
-
-    //Ping Gateway
-    public static void startGatewayConnectionThread(IWebGateway webServer) {
+    //Request System Stats and Ping Gateway
+    public static void getSystemStats() throws RemoteException {
         gatewayThreadRunning = true;
         gatewayConnectionThread = new Thread(() -> {
-            while (gatewayThreadRunning) {
+            try {
+                IWebGateway webStub = new WebServer();
+                while (gatewayThreadRunning) {
+                    try {
+                        IGatewayWeb stub = gatewayConnectionManager.connect(IGatewayWeb.class);
+                        if (stub == null) {
+                            //Set Status Offline -> systemStats
+                            System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
+                        } else {
+                            try {
+                                stub.registerWebServer(webStub);
+                                try {
+                                    SystemStats systemStats = stub.getSystemStats();
+                                    //Status ONLINE -> systemStats
+                                } catch (RemoteException e) {
+                                    System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                                }
+                            } catch (RemoteException e) {
+                                System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                            }
+                        }
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                    //SEND SYSTEM STATS TO CLIENTS
+                }
+
                 try {
                     IGatewayWeb stub = gatewayConnectionManager.connect(IGatewayWeb.class);
                     if (stub != null) {
-                        try {
-                            stub.registerWebServer(webServer);
-                            IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-                            if (gatewayStub != null) {
-                                try {
-                                    SystemStats systemStats = gatewayStub.getSystemStats();
-                                    //Status ONLINE -> send systemStats to Clients
-                                }
-                                catch (RemoteException ignored) {}
-                            }
-                        } catch (RemoteException ignore) {}
-                    } else {
-                        //Status OFFLINE
+                        stub.unregisterWebServer(webStub);
                     }
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+                } catch (RemoteException e) {
+                    System.err.println("[Client] Error: Failed to connect to Gateway Server");
                 }
+            } catch (RemoteException e) {
+                System.err.println("[Client] Error: Failed to export interface stub.");
             }
+
         });
         gatewayConnectionThread.start();
     }
@@ -356,7 +354,10 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
                             getLinksToURL(url);
                         }
 
-                        case "4" -> getSystemStats();
+                        case "4" -> {
+                            getSystemStats();
+                            gatewayThreadRunning = false;
+                        }
 
                         case "0" -> {
                             System.out.println("[Client] Exiting...");
