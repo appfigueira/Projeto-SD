@@ -33,15 +33,18 @@ public class URLQueue extends UnicastRemoteObject implements ICrawlerGateway {
     }
 
     //Add URL RMI Method
+    //Codes:
+    //0: Success
+    //2: Invalid URL
     @Override
-    public int submitURLGatewayCrawler(String url) throws RemoteException {
+    public int indexURLGatewayCrawler(String url) throws RemoteException {
         url = URLCleaner.cleanURL(url);
-        if (url == null) return 0;
+        if (url == null) return 2;
         if (visitedURLs.add(url)) {
             URLs.add(url);
             addToVisited(url);
         }
-        return 1;
+        return 0;
     }
 
     //Add URL if New Local Method

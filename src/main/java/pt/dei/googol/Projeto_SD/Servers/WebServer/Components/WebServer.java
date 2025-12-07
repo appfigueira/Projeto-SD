@@ -37,27 +37,16 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
         return tokens;
     }
 
-    public static void indexURL(String url) {
-        if (url.isBlank()) {
-            System.out.println("[Client] URL is empty.");
-            return;
-        }
-
+    public static int indexURL(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
+            return -1;
         } else {
             try {
-                int code = gatewayStub.submitURLClientGateway(url);
-                switch (code) {
-                    case -1 -> System.err.println("[Client] Error: Failed to index URL. Service may be unavailable. Please try again later.");
-                    case 0 -> System.out.println("[Client] Failed to submit URL: URL '" + url + "' already submitted.");
-                    case 1 -> System.out.println("[Client] URL '" + url + "' successfully submitted.");
-                }
-
+                return gatewayStub.indexURLClientGateway(url); //status
             }
             catch(RemoteException e) {
-                System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                return -1;
             }
         }
     }
@@ -189,8 +178,8 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
         } else {
             try {
                 LinkingURLsResult linksToURLResult = gatewayStub.getLinkingURLsClientGateway(url);
-                int code = linksToURLResult.code();
-                switch (code) {
+                int status = linksToURLResult.code();
+                switch (status) {
                     case -1 -> System.err.println("[Client] Error: Failed to submit target link. Service may be unavailable. Please try again later.");
                     case 0 -> System.out.println("[Client] Target URL '" + url + "' has no other URLs linking to it.");
                     case 1 -> {

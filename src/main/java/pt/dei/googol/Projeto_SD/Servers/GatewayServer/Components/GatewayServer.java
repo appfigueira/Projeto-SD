@@ -55,10 +55,11 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
 
     //code values:
     //-1: Error
-    //0: URL already indexed
-    //1: Success
+    //0: Success
+    //1: Already Index (comes from Barrel)
+    //2: Invalid URL (comes from Crawler)
     @Override
-    public int submitURLClientGateway(String url) throws RemoteException {
+    public int indexURLClientGateway(String url) throws RemoteException {
         System.out.println("[Gateway Server] Received URL from Client: " + url);
 
         //Barrel Server connection
@@ -102,7 +103,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
         else {System.err.println("[Gateway Server] No barrels available to verify if URL is already submitted.");}
 
         if (indexedURL) {
-            return 0;
+            return 1;
         }
 
         //Crawler Server connection
@@ -112,7 +113,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
             return -1;
         }
         try {
-            int code = crawlerStub.submitURLGatewayCrawler(url);
+            int code = crawlerStub.indexURLGatewayCrawler(url);
             System.out.println("[Gateway Server] URL sent to Crawler Queue: " + url);
             return code;
         }
@@ -125,8 +126,8 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
 
     //code values:
     //-1: Error
-    //0: Empty Results (comes from Barrel)
-    //1: Results
+    //0: Results
+    //1: Empty Results (comes from Barrel)
     @Override
     public SearchResult searchClientGateway(List<String> searchWords, int pageNumber, int URLsPerPage) throws RemoteException {
         System.out.println("[Gateway Server] Received search from Client: " + String.join(" ", searchWords));
@@ -181,8 +182,8 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
 
     //code values:
     //-1: Error
-    //0: Empty Links (comes from Barrel)
-    //1: Links
+    //0: Links
+    //1: Empty Links (comes from Barrel)
     @Override
     public LinkingURLsResult getLinkingURLsClientGateway(String url) {
         System.out.println("[Gateway Server] Received target URL from Client: " + url);

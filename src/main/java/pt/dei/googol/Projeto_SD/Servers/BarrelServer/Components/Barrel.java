@@ -101,9 +101,8 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
     //Returns true if URL exists in pageHeaderIndex, false if not
     @Override
     public boolean checkURL(String url) throws RemoteException {
-        if (url == null || url.isEmpty()) return false;
-
         url = URLCleaner.cleanURL(url);
+        if (url == null) return false;
         return pageHeaderIndex.containsKey(url);
     }
 
@@ -169,8 +168,8 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
 
     //code values:
     //-1: Error
-    //0: Empty Results
-    //1: Results
+    //0: Results
+    //1: Empty Results
     @Override
     public synchronized SearchResult searchGatewayBarrel(List<String> searchWords, int pageNumber, int URLsPerPage) throws RemoteException {
 
@@ -200,7 +199,7 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
 
         //No more Search Results
         if (startIndex >= sortedURLs.size()) {
-            return new SearchResult(0, Collections.emptyList());
+            return new SearchResult(1, Collections.emptyList());
         }
 
         List<URLHeader> results = new ArrayList<>();
@@ -210,24 +209,24 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
         }
 
         //Search Results
-        return new SearchResult(1, results);
+        return new SearchResult(0, results);
     }
 
     //code values:
-    //0: Empty Results
-    //1: Results
+    //0: Results
+    //1: Empty Results
     @Override
     public synchronized LinkingURLsResult getLinkingURLsGatewayBarrel(String url) {
         url = URLCleaner.cleanURL(url);
         if (url == null) {
-            return new LinkingURLsResult(0, Collections.emptySet());
+            return new LinkingURLsResult(1, Collections.emptySet());
         }
         System.out.println("[Barrel Server] Target URL: " + url);
         Set<String> links = linkIndex.get(url);
         if (links == null) {
-            return new LinkingURLsResult(0, Collections.emptySet());
+            return new LinkingURLsResult(1, Collections.emptySet());
         }
-        return new LinkingURLsResult(1, links);
+        return new LinkingURLsResult(0, links);
     }
 
     @Override
