@@ -1,40 +1,22 @@
 package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers;
 
-
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.Map;
 
-@Controller
-@RequestMapping("/index")
+@RestController
+@RequestMapping("/api/v1/index")
 public class IndexController {
 
-    //private final GoogolClient googolClient;
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    public ResponseEntity<?> indexUrl(@RequestBody JsonNode request) {
+        String url = request.get("url").asText();
 
-    /*public IndexController(GoogolClient googolClient) {
-        this.googolClient = googolClient;
-    }
-     */
+        System.out.println("URL recebido: " + url);
 
-    @GetMapping
-    public String showIndexForm(Model model) {
-        model.addAttribute("urlToIndex", "");
-        return "index_form";
-    }
+        // indexService.index(url);
 
-    @PostMapping
-    public String submitUrlForIndexing(
-            @RequestParam("url") String url,
-            RedirectAttributes redirectAttributes
-    ) {
-        try {
-            //googolClient.indexUrl(url);  // Chamada RPC/RMI
-            redirectAttributes.addFlashAttribute("success", "URL enviado para indexação: " + url);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erro ao indexar: " + e.getMessage());
-        }
-
-        return "redirect:/index";
+        return ResponseEntity.ok(Map.of("message", "URL recebido com sucesso"));
     }
 }

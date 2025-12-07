@@ -50,8 +50,7 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
             try {
                 int code = gatewayStub.submitURLClientGateway(url);
                 switch (code) {
-                    case -1 ->
-                            System.err.println("[Client] Error: Failed to index URL. Service may be unavailable. Please try again later.");
+                    case -1 -> System.err.println("[Client] Error: Failed to index URL. Service may be unavailable. Please try again later.");
                     case 0 -> System.out.println("[Client] Failed to submit URL: URL '" + url + "' already submitted.");
                     case 1 -> System.out.println("[Client] URL '" + url + "' successfully submitted.");
                 }
@@ -279,7 +278,7 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
         //Send systemStats to Clients
     }
 
-    public static boolean startClient() {
+    public static boolean startWebServer() {
         Properties config = new Properties();
         try (FileInputStream fis = new FileInputStream("files/SystemConfiguration")) {
             config.load(fis);
@@ -313,7 +312,7 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
 
     void main() {
         try {
-            boolean run = startClient();
+            boolean run = startWebServer();
             while (run) {
                 try {
                     System.out.print("""
