@@ -17,7 +17,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
-//NOTE: Commented code is my preferred solution, way better performance for very small data consistency loss
+//NOTE: Commented status is my preferred solution, way better performance for very small data consistency loss
 
 public class CrawlerServer extends UnicastRemoteObject implements ICrawlerBarrel {
 

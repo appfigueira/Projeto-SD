@@ -22,205 +22,61 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
     private static Thread gatewayConnectionThread;
     private static RMIConnectionManager<IGatewayWeb> gatewayConnectionManager;
 
+
     public WebServer() throws RemoteException {
         super();
     }
 
-    public static List<String> cleanSearchWords(String input) {
-        List<String> tokens = new ArrayList<>();
-        if (input != null && !input.isBlank()) {
-            for (String token : input.split("\\s+")) {
-                token = token.replaceAll("^\\p{Punct}+|\\p{Punct}+$", "").toLowerCase();
-                if (!token.isBlank()) tokens.add(token);
+
+    public static int indexURL(String url) {
+        IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
+        if (gatewayStub == null) {
+            return -1;
+        } else {
+            try {
+                return gatewayStub.indexURLClientGateway(url); //status
+            }
+            catch(RemoteException e) {
+                return -1;
             }
         }
-        return tokens;
     }
 
-    public static void indexURL(String url) {
-        if (url.isBlank()) {
-            System.out.println("[Client] URL is empty.");
-            return;
-        }
 
+    public static SearchResult search(List<String> searchTokens, int pageNumber) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
             System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
-        } else {
-            try {
-                int code = gatewayStub.submitURLClientGateway(url);
-                switch (code) {
-                    case -1 -> System.err.println("[Client] Error: Failed to index URL. Service may be unavailable. Please try again later.");
-                    case 0 -> System.out.println("[Client] Failed to submit URL: URL '" + url + "' already submitted.");
-                    case 1 -> System.out.println("[Client] URL '" + url + "' successfully submitted.");
-                }
-
-            }
-            catch(RemoteException e) {
-                System.err.println("[Client] Error: Failed to connect to Gateway Server");
-            }
+            return new SearchResult(-1, Collections.emptyList());
         }
-    }
-
-    public static void browse(List<String> searchTokens) {
-        if (searchTokens.isEmpty()) {
-            System.out.println("[Client] No valid search terms entered.");
-            return;
-        }
-
-        Scanner scanner = new Scanner(System.in);
-        int pageNumber = 0;
-
-        while (true) {
-            IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-            if (gatewayStub == null) {
-                System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
-                break;
-            }
-
-            SearchResult searchResult = search(gatewayStub, searchTokens, pageNumber);
-
-            int code = searchResult.code();
-            List<URLHeader> results = searchResult.results();
-
-            switch (code) {
-                //Server Error
-                case -1 -> {
-                    System.err.println("[Client] Error: Failed to load page. Service may be unavailable. Please try again later.");
-                    return;
-                }
-
-                //Results Empty
-                case 0 -> {
-                    //No more Search Results
-                    if (pageNumber > 0) {
-                        System.out.println("No more search results found.");
-                        System.out.print("\n[p] Previous page | [q] Quit: ");
-
-                        String command = scanner.nextLine().trim().toLowerCase();
-
-                        switch (command) {
-                            case "p" -> pageNumber--;
-                            case "q" -> {
-                                System.out.println("[Client] Exiting search.");
-                                return;
-                            }
-                            default -> System.out.println("[Client] Invalid command. Use 'p' or 'q'.");
-                        }
-                    } else if (pageNumber == 0) {
-                        System.out.println("[Client] No search results found. Please try again later.");
-                        System.out.println("[Client] Exiting search.");
-                        return;
-                    }
-
-                }
-                case 1 -> {
-                    if (results.isEmpty()) {
-                        System.err.println("[Client] Error: Page is empty.");
-                        System.out.println("[Client] Exiting search.");
-                        break;
-                    }
-
-                    printSearchResults(results, pageNumber);
-
-                    if (pageNumber == 0) {
-                        System.out.print("\n[n] Next page | [q] Quit: ");
-                        String command = scanner.nextLine().trim().toLowerCase();
-
-                        switch (command) {
-                            case "n" -> pageNumber++;
-                            case "q" -> {
-                                System.out.println("[Client] Exiting search.");
-                                return;
-                            }
-                            default -> System.out.println("[Client] Invalid command. Use 'n' or 'q'.");
-                        }
-                    }
-                    else {
-                        System.out.print("\n[n] Next page | [p] Previous page | [q] Quit: ");
-                        String command = scanner.nextLine().trim().toLowerCase();
-
-                        switch (command) {
-                            case "n" -> pageNumber++;
-                            case "p" -> pageNumber--;
-                            case "q" -> {
-                                System.out.println("[Client] Exiting search.");
-                                return;
-                            }
-                            default -> System.out.println("[Client] Invalid command. Use 'n', 'p' or 'q'.");
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public static SearchResult search(IGatewayWeb gatewayStub, List<String> searchTokens, int pageNumber) {
         try {
             return gatewayStub.searchClientGateway(searchTokens, pageNumber, URLsPerPage);
         } catch (RemoteException e) {
             System.err.println("[Client] Error: Failed to connect to Gateway Server");
-        }
-        return new SearchResult(-1, Collections.emptyList());
-    }
-
-    public static void printSearchResults(List<URLHeader> results, int pageNumber) {
-        System.out.println("\n[Client]");
-        System.out.println("========== Page " + (pageNumber + 1) + " ==========");
-
-        //Print Page Content
-        for (URLHeader result : results) {
-            System.out.println("URL    : " + result.url());
-            System.out.println("Title  : " + result.title());
-            System.out.println("Snippet: " + result.snippet());
-            System.out.println("------------------------------------");
+            return new SearchResult(-1, Collections.emptyList());
         }
     }
 
-    public static void getLinksToURL(String url) {
-        if (url.isBlank()) {
-            System.out.println("[Client] Target URL is empty.");
-            return;
-        }
-
+    public static LinkingURLsResult getLinksToURL(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
             System.err.println("[Client] Error: Gateway Service is unavailable. Please try again later.");
+            return new LinkingURLsResult(-1, null);
         } else {
             try {
-                LinkingURLsResult linksToURLResult = gatewayStub.getLinkingURLsClientGateway(url);
-                int code = linksToURLResult.code();
-                switch (code) {
-                    case -1 -> System.err.println("[Client] Error: Failed to submit target link. Service may be unavailable. Please try again later.");
-                    case 0 -> System.out.println("[Client] Target URL '" + url + "' has no other URLs linking to it.");
-                    case 1 -> {
-                        System.out.println("[Client] URL '" + url + "' successfully submitted.");
-                        Set<String> links = linksToURLResult.links();
-                        printLinks(url, links);
-                    }
-                }
+                LinkingURLsResult linksToURL = gatewayStub.getLinkingURLsClientGateway(url);
+                int status = linksToURL.status();
+                return switch (status) {
+                    case -1 -> new LinkingURLsResult(-1, null);
+                    case 0, 1 -> linksToURL;
+                    default -> new LinkingURLsResult(-1, null);
+                };
             }
             catch (RemoteException e) {
                 System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                return new LinkingURLsResult(-1, null);
             }
         }
-    }
-
-    public static void printLinks(String url, Set<String> links) {
-        if (links == null || links.isEmpty()) {
-            System.err.println("[Client] Error: Links is empty");
-            return;
-        }
-        System.out.println("\n[Client]");
-        System.out.println("🎯 Target link: '" + url + "'");
-        System.out.println("🔗 Links encontrados (" + links.size() + "):");
-        System.out.println("------------------------------------");
-
-        for (String link : links) {
-            System.out.println(link);
-        }
-
-        System.out.println("------------------------------------");
     }
 
     //Request System Stats and Ping Gateway

@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface IGatewayWeb extends Remote {
     boolean ping() throws RemoteException;
-    int submitURLClientGateway(String url) throws RemoteException;
+    int indexURLClientGateway(String url) throws RemoteException;
     SearchResult searchClientGateway(List<String> searchWords, int pageNumber, int URLsPerPage) throws RemoteException;
     LinkingURLsResult getLinkingURLsClientGateway(String url) throws RemoteException;
     SystemStats getSystemStats() throws RemoteException;
