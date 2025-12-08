@@ -15,13 +15,14 @@ import java.util.Map;
 public class SearchController {
 
     /**
-     * link example: "<a href="https://www.example.com/search?q=search_words_example&p=0">...</a>"
+     * link example: "<a href="https://www.googol.dei.pt/search?q=search_words_example&p=0">...</a>"
      * @param q: search words
      * @param p: page number (start at 0, first page -> p=0)
      * @return HTTP status:
      * - 200: Success
+     * - 201: No Search Results
      * - 400: Query Empty
-     * - 401: No Search Results
+     * - 401: Invalid Search
      * - 500: Service Unavailable
      */
     @GetMapping(produces = "application/json")
@@ -36,33 +37,25 @@ public class SearchController {
 
         if (searchTokens.isEmpty()){
             return ResponseEntity.
-                    status(400).
-                    body(Map.of("msg", "Query is empty"));
+                    status(401).
+                    body(Map.of("msg", "Invalid search"));
         }
 
         SearchResult searchResult = WebServer.search(searchTokens, p);
-
         int status = searchResult.status();
 
-        switch (status) {
-            case -1 -> {
-                return ResponseEntity.
+        return switch (status) {
+            case -1 -> ResponseEntity.
                         status(500).
-                        body(Map.of("msg", "Service unavailable."));
-
-            }
-            case 0 -> {
-                return ResponseEntity.
+                        body(Map.of("msg", "Service unavailable"));
+            case 0 -> ResponseEntity.
                         status(200).
                         body(searchResult.results());
-            }
-            case 1 -> {
-                return ResponseEntity.
-                        status(401).
+            case 1 -> ResponseEntity.
+                        status(201).
                         body(Map.of("msg", "No search results"));
-            }
-        }
-        throw new IllegalStateException("Unexpected status: " + status);
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
     }
 
     public static List<String> cleanSearchWords(String input) {

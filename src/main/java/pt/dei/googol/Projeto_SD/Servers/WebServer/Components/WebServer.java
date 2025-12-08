@@ -57,50 +57,26 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
         }
     }
 
-    public static void getLinksToURL(String url) {
-        if (url.isBlank()) {
-            System.out.println("[Client] Target URL is empty.");
-            return;
-        }
-
+    public static LinkingURLsResult getLinksToURL(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
             System.err.println("[Client] Error: Gateway Service is unavailable. Please try again later.");
+            return new LinkingURLsResult(-1, null);
         } else {
             try {
-                LinkingURLsResult linksToURLResult = gatewayStub.getLinkingURLsClientGateway(url);
-                int status = linksToURLResult.status();
-                switch (status) {
-                    case -1 -> System.err.println("[Client] Error: Failed to submit target link. Service may be unavailable. Please try again later.");
-                    case 0 -> System.out.println("[Client] Target URL '" + url + "' has no other URLs linking to it.");
-                    case 1 -> {
-                        System.out.println("[Client] URL '" + url + "' successfully submitted.");
-                        Set<String> links = linksToURLResult.links();
-                        printLinks(url, links);
-                    }
-                }
+                LinkingURLsResult linksToURL = gatewayStub.getLinkingURLsClientGateway(url);
+                int status = linksToURL.status();
+                return switch (status) {
+                    case -1 -> new LinkingURLsResult(-1, null);
+                    case 0, 1 -> linksToURL;
+                    default -> new LinkingURLsResult(-1, null);
+                };
             }
             catch (RemoteException e) {
                 System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                return new LinkingURLsResult(-1, null);
             }
         }
-    }
-
-    public static void printLinks(String url, Set<String> links) {
-        if (links == null || links.isEmpty()) {
-            System.err.println("[Client] Error: Links is empty");
-            return;
-        }
-        System.out.println("\n[Client]");
-        System.out.println("🎯 Target link: '" + url + "'");
-        System.out.println("🔗 Links encontrados (" + links.size() + "):");
-        System.out.println("------------------------------------");
-
-        for (String link : links) {
-            System.out.println(link);
-        }
-
-        System.out.println("------------------------------------");
     }
 
     //Request System Stats and Ping Gateway

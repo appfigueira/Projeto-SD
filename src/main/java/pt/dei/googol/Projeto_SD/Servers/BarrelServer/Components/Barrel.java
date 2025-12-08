@@ -172,7 +172,6 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
     //1: Empty Results
     @Override
     public synchronized SearchResult searchGatewayBarrel(List<String> searchWords, int pageNumber, int URLsPerPage) throws RemoteException {
-
         System.out.println("[Barrel Server] Search Words: " + String.join(" ", searchWords));
         Set<String> resultUrls = null;
 
@@ -187,7 +186,7 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
         }
 
         //No Search Results
-        if (resultUrls == null || resultUrls.isEmpty()) return new SearchResult(0, Collections.emptyList());
+        if (resultUrls == null || resultUrls.isEmpty()) return new SearchResult(1, null);
 
         //URL <- Links pointing to URL
         List<String> sortedURLs = resultUrls.stream().sorted(Comparator
@@ -199,7 +198,7 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
 
         //No more Search Results
         if (startIndex >= sortedURLs.size()) {
-            return new SearchResult(1, Collections.emptyList());
+            return new SearchResult(1, null);
         }
 
         List<URLHeader> results = new ArrayList<>();
@@ -219,12 +218,12 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
     public synchronized LinkingURLsResult getLinkingURLsGatewayBarrel(String url) {
         url = URLCleaner.cleanURL(url);
         if (url == null) {
-            return new LinkingURLsResult(1, Collections.emptySet());
+            return new LinkingURLsResult(1, null);
         }
         System.out.println("[Barrel Server] Target URL: " + url);
         Set<String> links = linkIndex.get(url);
         if (links == null) {
-            return new LinkingURLsResult(1, Collections.emptySet());
+            return new LinkingURLsResult(1, null);
         }
         return new LinkingURLsResult(0, links);
     }

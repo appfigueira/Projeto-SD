@@ -13,6 +13,7 @@ import java.util.Map;
 public class IndexController {
 
     /**
+     * link example: "<a href="https://www.googol.dei.pt/index">...</a>"
      * @param request:
      * - body: {"url"}
      * @return HTTP status:
@@ -23,43 +24,33 @@ public class IndexController {
      * - 500: Service Unavailable
      */
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> indexUrl(@RequestBody JsonNode request) {
+    public ResponseEntity<?> index(@RequestBody JsonNode request) {
         String url = request.get("url").asText();
 
         if (url.isBlank()) {
-            System.err.println("[Controller] Error: URL is empty.");
             return ResponseEntity.
                     status(400).
-                    body(Map.of("msg", "URL is empty."));
+                    body(Map.of("msg", "URL is empty"));
         }
         url = url.trim();
-        System.out.println("[Controller]: " + url);
 
         int status = WebServer.indexURL(url);
 
-        switch (status) {
-            case -1 -> {
-                return ResponseEntity.
+        return switch (status) {
+            case -1 -> ResponseEntity.
                         status(500).
                         body(Map.of("msg", "Service unavailable."));
 
-            }
-            case 0 -> {
-                return ResponseEntity.
+            case 0 ->ResponseEntity.
                         status(200).
                         body(Map.of("msg", "URL indexed"));
-            }
-            case 1 -> {
-                return ResponseEntity.
+            case 1 -> ResponseEntity.
                         status(401).
                         body(Map.of("msg", "URL already indexed"));
-            }
-            case 2 -> {
-                return ResponseEntity.
+            case 2 -> ResponseEntity.
                         status(402).
                         body(Map.of("msg", "Invalid URL"));
-            }
-        }
-        throw new IllegalStateException("Unexpected status: " + status);
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
     }
 }
