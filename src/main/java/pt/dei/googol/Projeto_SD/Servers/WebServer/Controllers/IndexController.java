@@ -8,17 +8,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * @return status:
- * - 200: Success
- * - 400: URL already indexed
- * - 401: Invalid URL
- * - 500: Service Unavailable
- */
 @RestController
 @RequestMapping("/index")
 public class IndexController {
 
+    /**
+     * @param request:
+     * - body: {"url"}
+     * @return HTTP status:
+     * - 200: Success
+     * - 400: URL Empty
+     * - 401: URL already indexed
+     * - 402: Invalid URL
+     * - 500: Service Unavailable
+     */
     @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> indexUrl(@RequestBody JsonNode request) {
         String url = request.get("url").asText();
@@ -48,16 +51,15 @@ public class IndexController {
             }
             case 1 -> {
                 return ResponseEntity.
-                        status(400).
+                        status(401).
                         body(Map.of("msg", "URL already indexed"));
             }
             case 2 -> {
                 return ResponseEntity.
-                        status(401).
+                        status(402).
                         body(Map.of("msg", "Invalid URL"));
             }
         }
-
-        return ResponseEntity.ok(Map.of("message", "URL recebido com sucesso"));
+        throw new IllegalStateException("Unexpected status: " + status);
     }
 }

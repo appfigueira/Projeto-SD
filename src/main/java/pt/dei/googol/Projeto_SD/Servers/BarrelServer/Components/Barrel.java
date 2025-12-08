@@ -166,7 +166,7 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
         return true;
     }
 
-    //code values:
+    //status values:
     //-1: Error
     //0: Results
     //1: Empty Results
@@ -212,7 +212,7 @@ public class Barrel extends UnicastRemoteObject implements IBarrelGateway, IBarr
         return new SearchResult(0, results);
     }
 
-    //code values:
+    //status values:
     //0: Results
     //1: Empty Results
     @Override

@@ -53,7 +53,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
         return true;
     }
 
-    //code values:
+    //status values:
     //-1: Error
     //0: Success
     //1: Already Index (comes from Barrel)
@@ -124,7 +124,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
         return -1;
     }
 
-    //code values:
+    //status values:
     //-1: Error
     //0: Results
     //1: Empty Results (comes from Barrel)
@@ -180,7 +180,7 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
         }
     }
 
-    //code values:
+    //status values:
     //-1: Error
     //0: Links
     //1: Empty Links (comes from Barrel)
