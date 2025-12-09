@@ -1,4 +1,4 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
 
 import pt.dei.googol.Projeto_SD.Common.DataStructures.SearchResult;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
