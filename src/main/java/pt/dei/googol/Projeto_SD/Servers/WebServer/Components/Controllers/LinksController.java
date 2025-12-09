@@ -1,5 +1,6 @@
 package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
 
+
 import pt.dei.googol.Projeto_SD.Common.DataStructures.LinkingURLsResult;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
 
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/links")
+@RequestMapping(value = "/links")
 public class LinksController {
 
     /**
@@ -29,9 +30,9 @@ public class LinksController {
                     body(Map.of("msg", "URL is empty"));
         }
 
-        LinkingURLsResult linksToURL = WebServer.getLinksToURL(url);
+        LinkingURLsResult linksResult = WebServer.links(url);
 
-        int status = linksToURL.status();
+        int status = linksResult.status();
 
         switch (status) {
             case -1 -> {
@@ -43,7 +44,7 @@ public class LinksController {
             case 0 -> {
                 return ResponseEntity.
                         status(200).
-                        body(linksToURL.links());
+                        body(linksResult.links());
             }
             case 1 -> {
                 return ResponseEntity.

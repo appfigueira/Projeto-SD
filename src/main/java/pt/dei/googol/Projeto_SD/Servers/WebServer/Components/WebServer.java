@@ -3,6 +3,7 @@ package pt.dei.googol.Projeto_SD.Servers.WebServer.Components;
 
 import pt.dei.googol.Projeto_SD.Common.Functions.RMIConnectionManager;
 import pt.dei.googol.Projeto_SD.Common.DataStructures.*;
+import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Services.GoogolService;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebSockets.StatsWebSocket;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Interfaces.IWebGateway;
 import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayWeb;
@@ -20,72 +21,33 @@ import java.util.*;
 public class WebServer extends UnicastRemoteObject implements IWebGateway {
 
     private static WebServer instance;
+    private static GoogolService googolService;
     private final StatsWebSocket statsWebSocket;
     static String host = "localhost"; // Gateway IP
     static int port; // RMI registry port
-    private static final int URLsPerPage = 10;
     private static volatile boolean gatewayThreadRunning = false;
     private static Thread gatewayConnectionThread;
     private static RMIConnectionManager<IGatewayWeb> gatewayConnectionManager;
 
 
-    public WebServer(StatsWebSocket statsWebSocket) throws RemoteException {
-        super();
-        this.statsWebSocket = statsWebSocket;
-        instance = this;
-    }
-
-
-    public static int indexURL(String url) {
-        IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-        if (gatewayStub == null) {
-            return -1;
-        } else {
-            try {
-                return gatewayStub.indexURLClientGateway(url); //status
-            }
-            catch(RemoteException e) {
-                return -1;
-            }
+        public WebServer(StatsWebSocket statsWebSocket, GoogolService googolService) throws RemoteException {
+            this.statsWebSocket = statsWebSocket;
+            WebServer.googolService = googolService;
+            instance = this;
         }
-    }
 
+        // Exemplo de uso no WebServer
+        public static int index(String url) {
+            return googolService.index(url);
+        }
 
-    public static SearchResult search(List<String> searchTokens, int pageNumber) {
-        IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-        if (gatewayStub == null) {
-            System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
-            return new SearchResult(-1, Collections.emptyList());
+        public static SearchResult search(List<String> tokens, int pageNumber) {
+            return googolService.search(tokens, pageNumber);
         }
-        try {
-            return gatewayStub.searchClientGateway(searchTokens, pageNumber, URLsPerPage);
-        } catch (RemoteException e) {
-            System.err.println("[Client] Error: Failed to connect to Gateway Server");
-            return new SearchResult(-1, Collections.emptyList());
-        }
-    }
 
-    public static LinkingURLsResult getLinksToURL(String url) {
-        IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-        if (gatewayStub == null) {
-            System.err.println("[Client] Error: Gateway Service is unavailable. Please try again later.");
-            return new LinkingURLsResult(-1, null);
-        } else {
-            try {
-                LinkingURLsResult linksToURL = gatewayStub.getLinkingURLsClientGateway(url);
-                int status = linksToURL.status();
-                return switch (status) {
-                    case -1 -> new LinkingURLsResult(-1, null);
-                    case 0, 1 -> linksToURL;
-                    default -> new LinkingURLsResult(-1, null);
-                };
-            }
-            catch (RemoteException e) {
-                System.err.println("[Client] Error: Failed to connect to Gateway Server");
-                return new LinkingURLsResult(-1, null);
-            }
+        public static LinkingURLsResult links(String url) {
+            return googolService.links(url);
         }
-    }
 
     //Request System Stats and Ping Gateway
     public void getSystemStats() throws RemoteException {

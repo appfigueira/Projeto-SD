@@ -1,5 +1,6 @@
 package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
 
+
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/index")
+@RequestMapping(value = "/index")
 public class IndexController {
 
     /**
      * link example: "<a href="https://www.googol.dei.pt/index">...</a>"
-     * @param request:
+     * @param body:
      * - body: {"url"}
      * @return HTTP status:
      * - 200: Success
@@ -24,8 +25,8 @@ public class IndexController {
      * - 500: Service Unavailable
      */
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> index(@RequestBody JsonNode request) {
-        String url = request.get("url").asText();
+    public ResponseEntity<?> index(@RequestBody JsonNode body) {
+        String url = body.get("url").asText();
 
         if (url.isBlank()) {
             return ResponseEntity.
@@ -34,7 +35,7 @@ public class IndexController {
         }
         url = url.trim();
 
-        int status = WebServer.indexURL(url);
+        int status = WebServer.index(url);
 
         return switch (status) {
             case -1 -> ResponseEntity.
