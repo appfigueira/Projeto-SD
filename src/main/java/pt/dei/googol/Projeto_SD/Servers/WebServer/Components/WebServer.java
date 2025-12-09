@@ -3,8 +3,11 @@ package pt.dei.googol.Projeto_SD.Servers.WebServer.Components;
 
 import pt.dei.googol.Projeto_SD.Common.Functions.RMIConnectionManager;
 import pt.dei.googol.Projeto_SD.Common.DataStructures.*;
+import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebSockets.StatsWebSocket;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Interfaces.IWebGateway;
 import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayWeb;
+
+import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,8 +16,11 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
+@Component
 public class WebServer extends UnicastRemoteObject implements IWebGateway {
 
+    private static WebServer instance;
+    private final StatsWebSocket statsWebSocket;
     static String host = "localhost"; // Gateway IP
     static int port; // RMI registry port
     private static final int URLsPerPage = 10;
@@ -23,8 +29,10 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
     private static RMIConnectionManager<IGatewayWeb> gatewayConnectionManager;
 
 
-    public WebServer() throws RemoteException {
+    public WebServer(StatsWebSocket statsWebSocket) throws RemoteException {
         super();
+        this.statsWebSocket = statsWebSocket;
+        instance = this;
     }
 
 
@@ -80,38 +88,53 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
     }
 
     //Request System Stats and Ping Gateway
-    public static void getSystemStats() throws RemoteException {
+    public void getSystemStats() throws RemoteException {
         gatewayThreadRunning = true;
         gatewayConnectionThread = new Thread(() -> {
+            IWebGateway webStub;
             try {
-                IWebGateway webStub = new WebServer();
+                webStub = (IWebGateway) UnicastRemoteObject.exportObject(this, 0);
+            } catch (RemoteException e) {
+                System.err.println("[Client] Error: Failed to export interface stub.");
+                return;
+            }
+
+            try {
                 while (gatewayThreadRunning) {
+                    SystemStats systemStats;
                     try {
                         IGatewayWeb stub = gatewayConnectionManager.connect(IGatewayWeb.class);
                         if (stub == null) {
-                            //Set Status Offline -> systemStats
                             System.err.println("[Client] Error: Gateway Service unavailable. Please try again later.");
+                            systemStats = new SystemStats();
                         } else {
                             try {
                                 stub.registerWebServer(webStub);
                                 try {
-                                    SystemStats systemStats = stub.getSystemStats();
-                                    //Status ONLINE -> systemStats
+                                    systemStats = stub.getSystemStats();
                                 } catch (RemoteException e) {
                                     System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                                    systemStats = new SystemStats();
                                 }
                             } catch (RemoteException e) {
                                 System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                                systemStats = new SystemStats();
                             }
                         }
+
                         Thread.sleep(1000);
+
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         break;
                     }
-                    //SEND SYSTEM STATS TO CLIENTS
+                    try {
+                        updateSystemStats(systemStats);
+                    } catch (RemoteException ignored) {
+                    }
                 }
 
+            } finally {
                 try {
                     IGatewayWeb stub = gatewayConnectionManager.connect(IGatewayWeb.class);
                     if (stub != null) {
@@ -120,10 +143,7 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
                 } catch (RemoteException e) {
                     System.err.println("[Client] Error: Failed to connect to Gateway Server");
                 }
-            } catch (RemoteException e) {
-                System.err.println("[Client] Error: Failed to export interface stub.");
             }
-
         });
         gatewayConnectionThread.start();
     }
@@ -131,27 +151,26 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
     //Remote Callback from Gateway
     @Override
     public void updateSystemStats(SystemStats systemStats) throws RemoteException {
-        //Send systemStats to Clients
+        statsWebSocket.broadcastStats(systemStats);
     }
 
-    public static boolean startWebServer() {
+    public static void startWebServer() {
         Properties config = new Properties();
         try (FileInputStream fis = new FileInputStream("files/SystemConfiguration")) {
             config.load(fis);
         } catch (IOException e) {
             System.err.println("[Barrel Server] Failed to load SystemConfiguration file.");
             e.printStackTrace();
-            return false;
+            return;
         }
         host = config.getProperty("gateway.host", "localhost");
         port = Integer.parseInt(config.getProperty("gateway.portRMI", "1099"));
         String gatewayServiceName = config.getProperty("gateway.serviceName", "Gateway");
 
         gatewayConnectionManager = new RMIConnectionManager<>(host, port, gatewayServiceName);
-        return true;
     }
 
-    public void shutdown() {
+    public static void shutdownWebServer() {
         gatewayThreadRunning = false;
         if (gatewayConnectionThread != null) {
             try {
@@ -159,77 +178,15 @@ public class WebServer extends UnicastRemoteObject implements IWebGateway {
             } catch (InterruptedException ignore) {}
         }
 
+        if (instance != null) {
+            instance.unexportRMI();
+        }
+    }
+
+    public void unexportRMI() {
         try {
             UnicastRemoteObject.unexportObject(this, true);
         } catch (NoSuchObjectException ignore) {}
 
-        System.exit(0);
-    }
-
-    void main() {
-        try {
-            boolean run = startWebServer();
-            while (run) {
-                try {
-                    System.out.print("""
-                            \n[Client]
-                            ------------------------------------
-                            📚 Googol Search Engine Client Menu
-                            ------------------------------------
-                            Please choose an option:
-                            1 - Index a new URL
-                            2 - Search pages
-                            3 - Get URLs linking to a page
-                            4 - View system statistics
-                            0 - Exit
-                            ------------------------------------\s
-                            """);
-
-                    Scanner scanner = new Scanner(System.in);
-                    String option = scanner.nextLine().trim();
-                    System.out.println("------------------------------------");
-
-                    switch (option) {
-                        case "1" -> {
-                            System.out.print("[Client] Enter URL: ");
-                            String url = scanner.nextLine().trim();
-                            indexURL(url);
-                        }
-
-                        case "2" -> {
-                            System.out.print("[Client] Enter search terms: ");
-                            String input = scanner.nextLine().trim();
-                            List<String> searchTokens = cleanSearchWords(input);
-                            browse(searchTokens);
-                        }
-
-                        case "3" -> {
-                            System.out.print("Enter target URL: ");
-                            String url = scanner.nextLine().trim();
-                            getLinksToURL(url);
-                        }
-
-                        case "4" -> {
-                            getSystemStats();
-                            gatewayThreadRunning = false;
-                        }
-
-                        case "0" -> {
-                            System.out.println("[Client] Exiting...");
-                            run = false;
-                        }
-                        default -> System.out.println("Invalid option. Please try again...");
-                    }
-                }
-                catch (Exception e) {
-                    System.err.println("[Client] Error:");
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("[Client] Error:");
-            e.printStackTrace();
-        }
-        shutdown();
     }
 }

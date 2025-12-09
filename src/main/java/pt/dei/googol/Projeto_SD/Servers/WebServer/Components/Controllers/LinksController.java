@@ -1,4 +1,4 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
 
 import pt.dei.googol.Projeto_SD.Common.DataStructures.LinkingURLsResult;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/search")
+@RequestMapping("/links")
 public class LinksController {
 
     /**

@@ -5,10 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SystemStats implements Serializable {
+    private final int status;
     private final List<String> top10Searches;
-    private final List<BarrelStats> barrelsStats = new ArrayList<>();
+    private List<BarrelStats> barrelsStats = new ArrayList<>();
+
+    public SystemStats() { //
+        this.status = -1;
+        this.top10Searches = null;
+        this.barrelsStats = null;
+    }
 
     public SystemStats(List<String> top10Searches) {
+        this.status = 0;
         this.top10Searches = top10Searches;
     }
 
@@ -17,6 +25,7 @@ public class SystemStats implements Serializable {
         this.barrelsStats.add(barrelStats);
     }
 
+    public int getStatus() {return status;}
 
     public List<String> getTop10Searches() {
         return top10Searches;

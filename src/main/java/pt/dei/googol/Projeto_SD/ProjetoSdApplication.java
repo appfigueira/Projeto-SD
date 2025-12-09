@@ -1,6 +1,7 @@
 package pt.dei.googol.Projeto_SD;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
@@ -11,6 +12,11 @@ public class ProjetoSdApplication {
     @PostConstruct
     public void startWebServer() {
         WebServer.startWebServer();
+    }
+
+    @PreDestroy
+    public void stopWebServer() {
+        WebServer.shutdownWebServer();
     }
 
 
