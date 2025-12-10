@@ -1,4 +1,4 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Services;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Services;
 
 import pt.dei.googol.Projeto_SD.Common.Functions.RMIConnectionManager;
 import pt.dei.googol.Projeto_SD.Common.DataStructures.*;
