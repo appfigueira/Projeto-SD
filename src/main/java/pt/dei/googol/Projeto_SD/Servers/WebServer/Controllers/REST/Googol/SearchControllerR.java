@@ -1,8 +1,8 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers.REST.Googol;
 
 
 import pt.dei.googol.Projeto_SD.Common.DataStructures.SearchResult;
-import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
+import pt.dei.googol.Projeto_SD.Servers.WebServer.Services.Googol.GoogolService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +12,16 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/search")
-public class SearchController {
+@RequestMapping(value = "/api/search")
+public class SearchControllerR {
+    private final GoogolService googolService;
+
+    public SearchControllerR(GoogolService googolService) {
+        this.googolService = googolService;
+    }
 
     /**
-     * link example: "<a href="https://www.googol.dei.pt/search?q=search_words_example&p=0">...</a>"
+     * link example: "<a href="https://www.googol.dei.pt/api/search?q=search_words_example&p=0">...</a>"
      * @param q: search words
      * @param p: page number (start at 0, first page -> p=0)
      * @return HTTP status:
@@ -27,7 +32,7 @@ public class SearchController {
      * - 500: Service Unavailable
      */
     @GetMapping(produces = "application/json")
-    public ResponseEntity<?> search(@RequestParam(defaultValue = "") String q, @RequestParam(defaultValue = "0") int p) {
+    public ResponseEntity<?> searchTokens(@RequestParam(defaultValue = "") String q, @RequestParam(defaultValue = "0") int p) {
         if (q.isBlank()){
             return ResponseEntity.
                     status(400).
@@ -42,7 +47,7 @@ public class SearchController {
                     body(Map.of("msg", "Invalid search"));
         }
 
-        SearchResult searchResult = WebServer.search(searchTokens, p);
+        SearchResult searchResult = googolService.searchTokens(searchTokens, p);
         int status = searchResult.status();
 
         return switch (status) {

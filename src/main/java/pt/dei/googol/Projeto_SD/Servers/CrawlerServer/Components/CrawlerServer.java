@@ -7,8 +7,10 @@ import pt.dei.googol.Projeto_SD.Servers.CrawlerServer.DataStructures.BarrelInfo;
 import pt.dei.googol.Projeto_SD.Servers.CrawlerServer.Interfaces.ICrawlerBarrel;
 import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayCrawler;
 
-import java.io.FileInputStream;
+import org.springframework.core.io.ClassPathResource;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -17,15 +19,9 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
-//NOTE: Commented status is my preferred solution, way better performance for very small data consistency loss
-
 public class CrawlerServer extends UnicastRemoteObject implements ICrawlerBarrel {
 
     private static URLQueue queue;
-    /*
-    private static final List<BarrelSender> barrelSenders = new ArrayList<>();
-    private static final List<Thread> barrelSenderThreads = new ArrayList<>();
-     */
     private static final List<Crawler> crawlers = new ArrayList<>();
     private static final List<Thread> crawlerThreads = new ArrayList<>();
     private static List<BarrelInfo> barrelsList = Collections.synchronizedList(new ArrayList<>());
@@ -82,77 +78,6 @@ public class CrawlerServer extends UnicastRemoteObject implements ICrawlerBarrel
         System.err.println("[Crawler Server] Error: Failed to unregister Barrel '" + barrelName + "'. Barrel not found.");
     }
 
-    /*
-    private static List<BarrelSender> startBarrelSenders() throws RemoteException, InterruptedException {
-        while (true) {
-            IGatewayCrawler gatewayStub = gatewayConnectionManager.connect(IGatewayCrawler.class);
-            if (gatewayStub == null) {
-                System.err.println("[Crawler Server] Gateway Service unavailable. Retrying in 5s...");
-                Thread.sleep(5000);
-                continue;
-            }
-
-            int numberOfBarrels = gatewayStub.getNumberOfBarrels();
-            if (numberOfBarrels == 0) {
-                System.err.println("[Client] Error: Number of barrels not submitted to Gateway. Retrying in 5s...");
-                Thread.sleep(5000);
-                continue;
-            }
-
-            for (int i = 0; i < numberOfBarrels; i++) {
-                barrelsList.add(new BarrelInfo());
-            }
-
-            List<String> barrelSenderNames = gatewayStub.getBarrelNames();
-            if (barrelSenderNames == null) {
-                System.err.println("[Client] Error: Barrel names not yet submitted to Gateway. Retrying in 5s...");
-                Thread.sleep(5000);
-                continue;
-            }
-
-            for (int id = 0; id < numberOfBarrels; id++) {
-                BarrelSender barrelSender = new BarrelSender(id, barrelsList);
-                barrelSenders.add(barrelSender);
-                Thread barrelSenderThread = new Thread(barrelSender);
-                barrelSenderThreads.add(barrelSenderThread);
-                barrelSenderThread.start();
-            }
-
-            System.out.println("[Crawler Server] " + numberOfBarrels + " Barrel Sender threads started.");
-            return barrelSenders;
-        }
-    }
-
-    private static void startCrawlersWithBarrelSenders(URLQueue queue, List<BarrelSender> barrelSenders) throws RemoteException, InterruptedException {
-        while (true) {
-            IGatewayCrawler gatewayStub = gatewayConnectionManager.connect(IGatewayCrawler.class);
-            if (gatewayStub == null) {
-                System.err.println("[Crawler Server] Gateway Service unavailable. Retrying in 5s...");
-                Thread.sleep(5000);
-                continue;
-            }
-
-            int numberOfCrawlers = gatewayStub.getNumberOfCrawlers();
-            if (numberOfCrawlers == 0) {
-                System.err.println("[Client] Error: Number of crawlers not yet submitted to Gateway. Retrying in 5s...");
-                Thread.sleep(5000);
-                continue;
-            }
-
-            System.out.println("[Crawler Server] Starting " + numberOfCrawlers + " crawler threads...");
-            for (int id = 0; id < numberOfCrawlers; id++) {
-                Crawler crawler = new Crawler(id, queue, barrelSenders);
-                crawlers.add(crawler);
-                Thread crawlerThread = new Thread(crawler);
-                crawlerThreads.add(crawlerThread);
-                crawlerThread.start();
-            }
-            System.out.println("[Crawler Server] " + numberOfCrawlers + " Crawler threads started.");
-            break;
-        }
-    }
-     */
-
     private static void startCrawlers() throws RemoteException, InterruptedException {
         while (true) {
             IGatewayCrawler gatewayStub = gatewayConnectionManager.connect(IGatewayCrawler.class);
@@ -195,8 +120,8 @@ public class CrawlerServer extends UnicastRemoteObject implements ICrawlerBarrel
 
     private static void startCrawlerServer() throws InterruptedException, RemoteException, MalformedURLException {
         Properties config = new Properties();
-        try (FileInputStream fis = new FileInputStream("files/SystemConfiguration")) {
-            config.load(fis);
+        try (InputStream is = new ClassPathResource("files/SystemConfiguration").getInputStream()) {
+            config.load(is);
         } catch (IOException e) {
             System.err.println("[Barrel Server] Failed to load SystemConfiguration file.");
             e.printStackTrace();
@@ -215,7 +140,7 @@ public class CrawlerServer extends UnicastRemoteObject implements ICrawlerBarrel
         CrawlerServer crawlerServer = new CrawlerServer(barrelsList);
         System.out.println("[Crawler Server] URLQueue created.");
         if (readURLFile) {
-            queue.loadURLsFromFile("files/URLs");
+            queue.loadURLsFromFile("src/main/resources/files/URLs");
             System.out.println("[Crawler Server] URLQueue loaded with starting URLs.");
         }
         else {System.out.println("[Crawler Server] URLQueue is empty.");}
