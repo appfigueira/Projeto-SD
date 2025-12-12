@@ -50,7 +50,7 @@ async function loadResults(target) {
 
         if (!response) return errorDiv.innerHTML = "Service unavailable";
         if (response.status === 400) return errorDiv.innerHTML = "Target URL cannot be empty";
-        if (response.status === 201) return errorDiv.innerHTML = "No links found for this URL";
+        if (response.status === 201) return errorDiv.innerHTML = "No links found for target URL";
         if (response.status === 500) return errorDiv.innerHTML = "Service unavailable";
 
         links.forEach(url => {

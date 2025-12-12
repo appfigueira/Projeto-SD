@@ -13,7 +13,7 @@ public class AIService {
         this.client = new Client();
     }
 
-    public String generateText(String prompt) throws Exception {
+    public String generateText(String prompt) {
         try {
             GenerateContentResponse response =
                     client.models.generateContent(
@@ -23,7 +23,9 @@ public class AIService {
                     );
             return response.text();
         } catch (Exception e) {
-            throw new Exception("Error in Gemini Service: " + e.getMessage(), e);
+            System.err.println("[AI Service] Error: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 }

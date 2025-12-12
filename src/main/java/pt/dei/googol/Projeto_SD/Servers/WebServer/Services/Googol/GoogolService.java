@@ -23,14 +23,14 @@ public class GoogolService {
     public int indexURL(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Web Server] Error: Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return -1;
         }
 
         try {
             return gatewayStub.indexURLClientGateway(url);
         } catch (RemoteException e) {
-            System.err.println("[Web Server] Error: Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return -1;
         }
     }
@@ -38,14 +38,14 @@ public class GoogolService {
     public SearchResult searchTokens(List<String> searchTokens, int pageNumber) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Web Server] Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return new SearchResult(-1, Collections.emptyList());
         }
 
         try {
             return gatewayStub.searchClientGateway(searchTokens, pageNumber, itemsPerPage);
         } catch (RemoteException e) {
-            System.err.println("[Web Server] Error: Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return new SearchResult(-1, Collections.emptyList());
         }
     }
@@ -53,7 +53,7 @@ public class GoogolService {
     public LinkingURLsResult getLinks(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Web Server] Error: Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return new LinkingURLsResult(-1, null);
         }
 
@@ -66,7 +66,7 @@ public class GoogolService {
                 default -> new LinkingURLsResult(-1, null);
             };
         } catch (RemoteException e) {
-            System.err.println("[Web Server] Error: Gateway unavailable.");
+            System.err.println("[Googol Service] Error: Gateway unavailable.");
             return new LinkingURLsResult(-1, null);
         }
     }
