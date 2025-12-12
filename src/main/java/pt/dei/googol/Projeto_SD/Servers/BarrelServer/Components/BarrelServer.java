@@ -10,8 +10,10 @@ import pt.dei.googol.Projeto_SD.Servers.BarrelServer.Interfaces.IBarrelGateway;
 import pt.dei.googol.Projeto_SD.Servers.CrawlerServer.Interfaces.ICrawlerBarrel;
 import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayBarrel;
 
-import java.io.FileInputStream;
+import org.springframework.core.io.ClassPathResource;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.Map;
 import java.util.Properties;
@@ -31,8 +33,8 @@ public class BarrelServer {
 
     private static void startBarrelServer() throws RemoteException, InterruptedException {
         Properties config = new Properties();
-        try (FileInputStream fis = new FileInputStream("files/SystemConfiguration")) {
-            config.load(fis);
+        try (InputStream is = new ClassPathResource("files/SystemConfiguration").getInputStream()) {
+            config.load(is);
         } catch (IOException e) {
             System.err.println("[Barrel Server] Failed to load SystemConfiguration file.");
             e.printStackTrace();

@@ -12,8 +12,10 @@ import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayWeb;
 import pt.dei.googol.Projeto_SD.Servers.GatewayServer.Interfaces.IGatewayCrawler;
 import pt.dei.googol.Projeto_SD.Servers.WebServer.Interfaces.IWebGateway;
 
-import java.io.FileInputStream;
+import org.springframework.core.io.ClassPathResource;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -539,8 +541,8 @@ public class GatewayServer extends UnicastRemoteObject implements IGatewayWeb, I
 
     private void setupSystem() throws RemoteException, MalformedURLException {
         Properties config = new Properties();
-        try (FileInputStream fis = new FileInputStream("files/SystemConfiguration")) {
-            config.load(fis);
+        try (InputStream is = new ClassPathResource("files/SystemConfiguration").getInputStream()) {
+            config.load(is);
         } catch (IOException e) {
             System.err.println("[Gateway Server] Error: Failed to load SystemConfiguration file.");
             e.printStackTrace();

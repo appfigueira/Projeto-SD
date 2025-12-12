@@ -1,4 +1,4 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebSockets;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.WebSockets;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -16,6 +16,6 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(statsWebSocket, "/stats");
+        registry.addHandler(statsWebSocket, "/ws/stats");
     }
 }

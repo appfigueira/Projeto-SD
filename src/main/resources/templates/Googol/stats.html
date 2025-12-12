@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Statistics - Googol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            color: #FFFFFF;
+            cursor: pointer;
+        }
+
+        .header h1 {
+            font-size: 50px;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: #AAAAAA;
+            margin-bottom: 15px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            background-color: #1E1E1E;
+            border: 1px solid #444;
+        }
+
+        .status-connected {
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .status-connecting {
+            color: #FFC107;
+            border: 1px solid #FFC107;
+        }
+
+        .status-disconnected {
+            color: #FF5252;
+            border: 1px solid #FF5252;
+        }
+
+        /* Top 10 Searches Section */
+        .top-searches-section {
+            background-color: #1E1E1E;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .top-searches-section h2 {
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .top-searches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .search-item {
+            background-color: #2A2A2A;
+            border: 1px solid #444;
+            color: #E0E0E0;
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #BB86FC;
+            margin-right: 10px;
+        }
+
+        .search-query {
+            flex: 1;
+            font-size: 1em;
+            word-break: break-word;
+        }
+
+        /* Barrels Section */
+        .barrels-section {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .barrel-card {
+            background-color: #1E1E1E;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 25px;
+            width: 280px;
+            min-width: 280px;
+            flex-shrink: 0;
+        }
+
+        .barrel-card.offline {
+            opacity: 0.6;
+            background-color: #1A1A1A;
+        }
+
+        .barrel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #444;
+        }
+
+        .barrel-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+
+        .barrel-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background-color: #1E1E1E;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .status-offline {
+            background-color: #1E1E1E;
+            color: #FF5252;
+            border: 1px solid #FF5252;
+        }
+
+        .barrel-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #2A2A2A;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            color: #AAAAAA;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        .stat-highlight {
+            background-color: #2D2D2D;
+            border: 1px solid #BB86FC;
+        }
+
+        .stat-highlight .stat-label {
+            color: #BB86FC;
+        }
+
+        .stat-highlight .stat-value {
+            color: #BB86FC;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #AAAAAA;
+            font-size: 1.2em;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Scrollbar styling */
+        .barrels-section::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .barrels-section::-webkit-scrollbar-track {
+            background: #1E1E1E;
+            border-radius: 10px;
+        }
+
+        .barrels-section::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
+        }
+
+        .barrels-section::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><a href="/" class="logo-link">Googol</a></h1>
+        <h2>📊 System Statistics</h2>
+        <div id="connectionStatus" class="connection-status status-connecting">
+            🔄 Connecting...
+        </div>
+    </div>
+
+    <div class="top-searches-section">
+        <h2>🔍 TOP 10 Searches</h2>
+        <div id="topSearches" class="loading">
+            Loading TOP 10 searches
+        </div>
+    </div>
+
+    <div id="barrels" class="barrels-section">
+        <div class="loading">Loading barrels</div>
+    </div>
+</div>
+
+<script src="/js/configLoader.js"></script>
+<script src="/js/Googol/stats.js"></script>
+</body>
+</html>

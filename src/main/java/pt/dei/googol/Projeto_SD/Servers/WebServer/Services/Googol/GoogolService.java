@@ -1,4 +1,4 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Services;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Services.Googol;
 
 import pt.dei.googol.Projeto_SD.Common.Functions.RMIConnectionManager;
 import pt.dei.googol.Projeto_SD.Common.DataStructures.*;
@@ -14,42 +14,46 @@ import java.util.List;
 public class GoogolService {
 
     private final RMIConnectionManager<IGatewayWeb> gatewayConnectionManager;
-    private static final int URLsPerPage = 10;
+    private static final int itemsPerPage = 10;
 
     public GoogolService(RMIConnectionManager<IGatewayWeb> gatewayConnectionManager) {
         this.gatewayConnectionManager = gatewayConnectionManager;
     }
 
-    public int index(String url) {
+    public int indexURL(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
-        if (gatewayStub == null) return -1;
+        if (gatewayStub == null) {
+            System.err.println("[Web Server] Error: Gateway unavailable.");
+            return -1;
+        }
 
         try {
             return gatewayStub.indexURLClientGateway(url);
         } catch (RemoteException e) {
+            System.err.println("[Web Server] Error: Gateway unavailable.");
             return -1;
         }
     }
 
-    public SearchResult search(List<String> searchTokens, int pageNumber) {
+    public SearchResult searchTokens(List<String> searchTokens, int pageNumber) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Client] Gateway Service unavailable");
+            System.err.println("[Web Server] Gateway unavailable.");
             return new SearchResult(-1, Collections.emptyList());
         }
 
         try {
-            return gatewayStub.searchClientGateway(searchTokens, pageNumber, URLsPerPage);
+            return gatewayStub.searchClientGateway(searchTokens, pageNumber, itemsPerPage);
         } catch (RemoteException e) {
-            System.err.println("[Client] Failed to connect to Gateway Server");
+            System.err.println("[Web Server] Error: Gateway unavailable.");
             return new SearchResult(-1, Collections.emptyList());
         }
     }
 
-    public LinkingURLsResult links(String url) {
+    public LinkingURLsResult getLinks(String url) {
         IGatewayWeb gatewayStub = gatewayConnectionManager.connect(IGatewayWeb.class);
         if (gatewayStub == null) {
-            System.err.println("[Client] Gateway Service unavailable");
+            System.err.println("[Web Server] Error: Gateway unavailable.");
             return new LinkingURLsResult(-1, null);
         }
 
@@ -62,7 +66,7 @@ public class GoogolService {
                 default -> new LinkingURLsResult(-1, null);
             };
         } catch (RemoteException e) {
-            System.err.println("[Client] Failed to connect to Gateway Server");
+            System.err.println("[Web Server] Error: Gateway unavailable.");
             return new LinkingURLsResult(-1, null);
         }
     }

@@ -1,8 +1,8 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers.REST.Googol;
 
 
 import pt.dei.googol.Projeto_SD.Common.DataStructures.LinkingURLsResult;
-import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
+import pt.dei.googol.Projeto_SD.Servers.WebServer.Services.Googol.GoogolService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/links")
-public class LinksController {
+@RequestMapping(value = "/api/links")
+public class LinksControllerR {
+    private final GoogolService googolService;
+
+    public LinksControllerR(GoogolService googolService) {
+        this.googolService = googolService;
+    }
 
     /**
      * link example: "<a href="https://www.googol.dei.pt/search?url=https://www.example.com">...</a>"
@@ -23,14 +28,15 @@ public class LinksController {
      * - 500: Service Unavailable
      */
     @GetMapping(produces = "application/json")
-    public ResponseEntity<?> links(@RequestParam String url) {
+    public ResponseEntity<?> getLinks(@RequestParam String url) {
         if (url.isBlank()){
             return ResponseEntity.
                     status(400).
                     body(Map.of("msg", "URL is empty"));
         }
 
-        LinkingURLsResult linksResult = WebServer.links(url);
+        LinkingURLsResult linksResult = googolService.getLinks(url);
+        System.out.println(linksResult);
 
         int status = linksResult.status();
 

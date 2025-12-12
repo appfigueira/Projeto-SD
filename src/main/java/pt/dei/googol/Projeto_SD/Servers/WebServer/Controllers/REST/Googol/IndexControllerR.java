@@ -1,7 +1,7 @@
-package pt.dei.googol.Projeto_SD.Servers.WebServer.Components.Controllers;
+package pt.dei.googol.Projeto_SD.Servers.WebServer.Controllers.REST.Googol;
 
 
-import pt.dei.googol.Projeto_SD.Servers.WebServer.Components.WebServer;
+import pt.dei.googol.Projeto_SD.Servers.WebServer.Services.Googol.GoogolService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/index")
-public class IndexController {
+@RequestMapping(value = "/api/index")
+public class IndexControllerR {
+    private final GoogolService googolService;
+
+    public IndexControllerR(GoogolService googolService) {
+        this.googolService = googolService;
+    }
 
     /**
      * link example: "<a href="https://www.googol.dei.pt/index">...</a>"
@@ -25,8 +30,8 @@ public class IndexController {
      * - 500: Service Unavailable
      */
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> index(@RequestBody JsonNode body) {
-        String url = body.get("url").asText();
+    public ResponseEntity<?> indexURL(@RequestBody Map<String, String> body) {
+        String url = body.get("url");
 
         if (url.isBlank()) {
             return ResponseEntity.
@@ -35,12 +40,12 @@ public class IndexController {
         }
         url = url.trim();
 
-        int status = WebServer.index(url);
+        int status = googolService.indexURL(url);
 
         return switch (status) {
             case -1 -> ResponseEntity.
                         status(500).
-                        body(Map.of("msg", "Service unavailable."));
+                        body(Map.of("msg", "Service unavailable"));
 
             case 0 ->ResponseEntity.
                         status(200).
