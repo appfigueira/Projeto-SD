@@ -57,7 +57,7 @@ async function performIndex(target) {
             resultDiv.innerHTML = "Service unavailable";
             resultDiv.className = "error";
         } else if (response.ok) {
-            resultDiv.innerHTML = data.msg || "URL indexed successfully";
+            resultDiv.innerHTML = data.msg || "URL indexed";
             resultDiv.className = "success";
         } else {
             resultDiv.innerHTML = data.msg || "Unknown error";

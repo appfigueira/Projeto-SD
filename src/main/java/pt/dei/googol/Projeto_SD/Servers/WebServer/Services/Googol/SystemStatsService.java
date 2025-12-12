@@ -37,7 +37,7 @@ public class SystemStatsService extends UnicastRemoteObject implements IWebGatew
                     try {
                         IGatewayWeb stub = gatewayConnectionManager.connect(IGatewayWeb.class);
                         if (stub == null) {
-                            System.err.println("[Web Server] Error: Gateway unavailable.");
+                            System.err.println("[Stats WS] Error: Gateway unavailable.");
                             systemStats = new SystemStats();
                         } else {
                             try {
@@ -45,11 +45,11 @@ public class SystemStatsService extends UnicastRemoteObject implements IWebGatew
                                 try {
                                     systemStats = stub.getSystemStats();
                                 } catch (RemoteException e) {
-                                    System.err.println("[Client] Error: Failed to connect to Gateway Server");
+                                    System.err.println("[Stats WS] Error: Failed to connect to Gateway Server");
                                     systemStats = new SystemStats();
                                 }
                             } catch (RemoteException e) {
-                                System.err.println("[Web Server] Error: Gateway unavailable.");
+                                System.err.println("[Stats WS] Error: Gateway unavailable.");
                                 systemStats = new SystemStats();
                             }
                         }
@@ -70,7 +70,7 @@ public class SystemStatsService extends UnicastRemoteObject implements IWebGatew
                         stub.unregisterWebServer(webStub);
                     }
                 } catch (RemoteException e) {
-                    System.err.println("[Web Server] Error: Gateway unavailable.");
+                    System.err.println("[Stats WS] Error: Gateway unavailable.");
                 }
             }
         });
